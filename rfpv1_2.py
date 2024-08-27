@@ -52,7 +52,7 @@ def {func_name}({params}):
 
 
 
-def obfuscate(data):
+def transform(data):
     try:
         encoded = base64.b64encode(data.encode())
         encrypted_data = cipher_suite.encrypt(encoded)
@@ -63,7 +63,7 @@ def obfuscate(data):
 
 
 
-def deobfuscate(encrypted_data):
+def detransform(encrypted_data):
     try:
         decrypted_data = cipher_suite.decrypt(encrypted_data)
         decoded = base64.b64decode(decrypted_data).decode()
@@ -173,9 +173,9 @@ def single_query(text, query, model_name):
 
         for i, chunk in enumerate(chunks):
             embedding = embeddings.embed_text(chunk)
-            obfuscated_embedding = obfuscate(embedding)
-            if obfuscated_embedding:
-                store_embeddings(conn, doc_id, f"chunk_{i}", obfuscated_embedding)
+            transformd_embedding = transform(embedding)
+            if transformd_embedding:
+                store_embeddings(conn, doc_id, f"chunk_{i}", transformd_embedding)
 
         llm = ChatOpenAI(model_name=model_name, openai_api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -185,7 +185,7 @@ def single_query(text, query, model_name):
         qa_chain = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever)
         response = qa_chain.run(query)
 
-        return deobfuscate(response)
+        return detransform(response)
     except Exception as e:
         st.error(f"Query handling error: {str(e)}")
         return "Query failed."
